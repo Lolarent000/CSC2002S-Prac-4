@@ -13,6 +13,7 @@ public class WordPanel extends JPanel implements Runnable {
 		private WordRecord[] words;
 		private int noWords;
 		private int maxY;
+		private boolean running;
 
 		
 		public void paintComponent(Graphics g) {
@@ -31,17 +32,27 @@ public class WordPanel extends JPanel implements Runnable {
 		    	g.drawString(words[i].getWord(),words[i].getX(),words[i].getY()+20);  //y-offset for skeleton so that you can see the words	
 		    }
 		   
-		  }
+		}
+		
+		public void setRunning(boolean running) {
+			this.running = running;
+			System.out.println("run");
+		}
 		
 		WordPanel(WordRecord[] words, int maxY) {
 			this.words=words; //will this work?
 			noWords = words.length;
 			done=false;
-			this.maxY=maxY;		
+			this.maxY=maxY;
+			this.running = false;
 		}
 		
 		public void run() {
-			//add in code to animate this redraw every 100ms
+			while (true) {
+				while(running) {
+					repaint();
+				}
+			}
 		}
 
 	}

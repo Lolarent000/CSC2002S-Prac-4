@@ -22,12 +22,13 @@ public class WordApp {
 
 	static WordDictionary dict = new WordDictionary(); //use default dictionary, to read from file eventually
 
-	static FallingThread [] threads;
+	static Thread [] threads;
 	static WordRecord[] words;
 	static volatile boolean done;  //must be volatile
-	static 	Score score = new Score();
+	static Score score = new Score();
 
 	static WordPanel w;
+	static Thread panelThread;
 	
 	
 	
@@ -81,7 +82,12 @@ public class WordApp {
 		startB.addActionListener(new ActionListener() {
 		      public void actionPerformed(ActionEvent e)
 		      {
-		    	  //[snip]
+		    	  w.setRunning(true);
+		    	  for(Thread thread:threads) {
+		    		  if(!thread.isAlive()) {
+		    			  thread.start();
+		    		  }
+		    	  }
 		    	  textEntry.requestFocus();  //return focus to the text entry field
 		      }
 		    });
@@ -91,7 +97,9 @@ public class WordApp {
 		endB.addActionListener(new ActionListener() {
 		      public void actionPerformed(ActionEvent e)
 		      {
-		    	  //[snip]
+		    	  w.setRunning(false);
+		    	  //reset threads
+		    	  w.repaint();
 		      }
 		    });
 		JButton quitB = new JButton("Quit");
@@ -100,9 +108,10 @@ public class WordApp {
 		quitB.addActionListener(new ActionListener() {
 		      public void actionPerformed(ActionEvent e)
 		      {
-		    	  for(FallingThread thread :threads) {
+		    	  for(Thread thread:threads) {
 		    		  thread.interrupt();
 		    	  }
+		    	  panelThread.interrupt();
 		    	  System.exit(0);
 		      }
 		    });
@@ -156,7 +165,6 @@ public class WordApp {
 		else { //for testing
 			totalWords = 10;  //total words to fall
 			noWords = 5; // total words falling at any point
-			assert(totalWords>=noWords); // this could be done more neatly
 			tmpDict = getDictFromFile("example_dict.txt"); //file of words
 		}
 		if (tmpDict!=null)
@@ -166,20 +174,21 @@ public class WordApp {
 		
 		words = new WordRecord[noWords];  //shared array of current words
 		
-		//[snip]
-		
 		setupGUI(frameX, frameY, yLimit);  
-    	//Start WordPanel thread - for redrawing animation
-
+    	
+		//Start WordPanel thread
+		panelThread = new Thread(w);
+		panelThread.start();
+		
 		int x_inc=(int)frameX/noWords;
 	  	//initialize shared array of current words
 		
-		threads = new FallingThread[noWords];
+		threads = new Thread[noWords];
 
 		for (int i=0;i<noWords;i++) {
 			words[i]=new WordRecord(dict.getNewWord(),i*x_inc,yLimit); 
-			threads[i] = new FallingThread(words[i], totalWords);
-			threads[i].start();
+			Runnable runnable = new FallingThread(words[i], score, totalWords);
+			threads[i] = new Thread(runnable);
 		}
 		
 	}

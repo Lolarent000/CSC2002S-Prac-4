@@ -1,39 +1,42 @@
 
-public class FallingThread extends Thread{
+public class FallingThread implements Runnable{
 	
-	WordRecord wr;
+	private WordRecord wr;
 	private boolean falling;
 	private int maxWords;
+	private Score score;
 	
-	public FallingThread(WordRecord wr, int maxWords) {
+	public FallingThread(WordRecord wr, Score score, int maxWords) {
 		this.wr = wr;
 		this.maxWords = maxWords;
 		this.falling = true;
+		this.score = score;
 	}
 	
-	public void run() { 
-        try { 
-        	while(wr.dropped() == false) {
-        		continue;
-        	}
+	public void run() {
+		try {
         	while(falling) {
-        		//animate falling by editing wr
+        		Thread.sleep(wr.getSpeed());
+        		int newYPos = 20 + wr.getY();
+        		boolean hitBottom = wr.setY(newYPos);
         		
+        		if(hitBottom)
+        		{
+        			score.missedWord();
+        			if(score.getTotal() < maxWords) {
+        				wr.resetWord();
+        			}
+        			else {
+        				falling = false;
+        				wr.resetWord();
+        			}
+        		}
         	}
-        	long sleepTime = Math.round((Math.random()* 3000) + 2000);
             
-            Thread.sleep(sleepTime);
             
             // Displaying the thread that is running 
-            System.out.println ("Thread " + 
-                  Thread.currentThread().getId() + 
-                  " is running for " + sleepTime/1000 + " seconds");
-            
-  
-        } 
-        catch (InterruptedException e) { 
-            // System.out.println ("Thread forcibly Quit");
-        } 
+            System.out.println ("Thread " + Thread.currentThread().getId() + " is running");  
+        }
         catch (Exception e) {
         	//General Error catching
         	System.out.println ("Thread Exception was caught");

@@ -85,10 +85,10 @@ public class WordRecord {
 	}
 
 	public synchronized void resetWord() {
+		dropped = false;
 		resetPos();
 		text=dict.getNewWord();
 		fallingSpeed=(int)(Math.random() * (maxWait-minWait)+minWait);
-		dropped = false;
 		//System.out.println(getWord() + " falling speed = " + getSpeed());
 	}
 	

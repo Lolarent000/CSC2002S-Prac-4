@@ -36,7 +36,6 @@ public class WordPanel extends JPanel implements Runnable {
 		
 		public void setRunning(boolean running) {
 			this.running = running;
-			System.out.println("run");
 		}
 		
 		WordPanel(WordRecord[] words, int maxY) {
@@ -48,9 +47,15 @@ public class WordPanel extends JPanel implements Runnable {
 		}
 		
 		public void run() {
-			while (true) {
-				while(running) {
-					repaint();
+			while(true) {
+				try {
+					Thread.sleep(10);
+					if(running) {
+						repaint();
+					}
+				}
+				catch(Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}

@@ -2,40 +2,46 @@
 public class FallingThread implements Runnable{
 	
 	private WordRecord wr;
-	private boolean falling;
+	private boolean running;
 	private int maxWords;
 	private Score score;
 	
 	public FallingThread(WordRecord wr, Score score, int maxWords) {
 		this.wr = wr;
 		this.maxWords = maxWords;
-		this.falling = true;
+		this.running = true;
 		this.score = score;
 	}
 	
 	public void run() {
 		try {
-        	while(falling) {
-        		Thread.sleep(wr.getSpeed());
-        		int newYPos = 20 + wr.getY();
-        		boolean hitBottom = wr.setY(newYPos);
-        		
-        		if(hitBottom)
-        		{
-        			score.missedWord();
-        			if(score.getTotal() < maxWords) {
-        				wr.resetWord();
-        			}
-        			else {
-        				falling = false;
-        				wr.resetWord();
-        			}
+        	while(running) {
+        		if(wr.getDropped() == true) {
+	        		Thread.sleep(wr.getSpeed());
+	        		boolean hitBottom = wr.drop(10);
+	        		
+	        		if(hitBottom)
+	        		{
+	        			score.missedWord();
+	        			if(score.getTotal() < maxWords) {
+	        				wr.resetWord();
+	        				wr.setDropped(true);
+	        			}
+	        			else {
+	        				running = false;
+	        				wr.resetWord();
+	        				wr.setDropped(true);
+	        			}
+	        		}
         		}
+        		if(score.getTotal() >= maxWords) {
+        			running = false;
+    			}
         	}
             
             
             // Displaying the thread that is running 
-            System.out.println ("Thread " + Thread.currentThread().getId() + " is running");  
+            System.out.println ("Thread " + Thread.currentThread().getId() + " is done running");  
         }
         catch (Exception e) {
         	//General Error catching

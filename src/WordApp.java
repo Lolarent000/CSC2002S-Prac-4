@@ -29,12 +29,14 @@ public class WordApp {
 
 	static WordPanel w;
 	static Thread panelThread;
-	
-	
+	static JFrame frame;
+	static JLabel caught;
+	static JLabel missed;
+	static JLabel scr;
 	
 	public static void setupGUI(int frameX,int frameY,int yLimit) {
 		// Frame init and dimensions
-    	JFrame frame = new JFrame("WordGame"); 
+    	frame = new JFrame("WordGame"); 
     	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     	frame.setSize(frameX, frameY);
     	
@@ -50,21 +52,23 @@ public class WordApp {
 	    
 	    JPanel txt = new JPanel();
 	    txt.setLayout(new BoxLayout(txt, BoxLayout.LINE_AXIS)); 
-	    JLabel caught =new JLabel("Caught: " + score.getCaught() + "    ");
-	    JLabel missed =new JLabel("Missed:" + score.getMissed()+ "    ");
-	    JLabel scr =new JLabel("Score:" + score.getScore()+ "    ");    
+	    caught =new JLabel("Caught: " + score.getCaught() + "    ");
+	    missed =new JLabel("Missed:" + score.getMissed() + "    ");
+	    scr =new JLabel("Score:" + score.getScore() + "    ");    
 	    txt.add(caught);
 	    txt.add(missed);
 	    txt.add(scr);
-    
-	    //[snip]
-  
+      
 	    final JTextField textEntry = new JTextField("",20);
 	   textEntry.addActionListener(new ActionListener()
 	    { // Add listener to the text box for when enter is pressed
 	      public void actionPerformed(ActionEvent evt) {
 	          String text = textEntry.getText();
-	          //[snip]
+	          for(WordRecord word: words) {
+	        	  if(word.matchWord(text)) {
+	        		  score.caughtWord(text.length());
+	        	  }
+	          }
 	          textEntry.setText("");
 	          textEntry.requestFocus();
 	      }
@@ -83,10 +87,8 @@ public class WordApp {
 		      public void actionPerformed(ActionEvent e)
 		      {
 		    	  w.setRunning(true);
-		    	  for(Thread thread:threads) {
-		    		  if(!thread.isAlive()) {
-		    			  thread.start();
-		    		  }
+		    	  for(WordRecord word: words) {
+		    		  word.setDropped(true);
 		    	  }
 		    	  textEntry.requestFocus();  //return focus to the text entry field
 		      }
@@ -98,8 +100,12 @@ public class WordApp {
 		      public void actionPerformed(ActionEvent e)
 		      {
 		    	  w.setRunning(false);
-		    	  //reset threads
+		    	  for(WordRecord word: words) {
+		    		  word.resetWord();
+		    	  }
+		    	  score.resetScore();
 		    	  w.repaint();
+		    	  JOptionPane.showMessageDialog(frame, "Game over!");
 		      }
 		    });
 		JButton quitB = new JButton("Quit");
@@ -108,7 +114,7 @@ public class WordApp {
 		quitB.addActionListener(new ActionListener() {
 		      public void actionPerformed(ActionEvent e)
 		      {
-		    	  for(Thread thread:threads) {
+		    	  for(Thread thread: threads) {
 		    		  thread.interrupt();
 		    	  }
 		    	  panelThread.interrupt();
@@ -127,7 +133,6 @@ public class WordApp {
         frame.setContentPane(g);     
        	//frame.pack();  // don't do this - packs it into small space
         frame.setVisible(true);
-
 		
 	}
 
@@ -189,8 +194,30 @@ public class WordApp {
 			words[i]=new WordRecord(dict.getNewWord(),i*x_inc,yLimit); 
 			Runnable runnable = new FallingThread(words[i], score, totalWords);
 			threads[i] = new Thread(runnable);
+			threads[i].start();
 		}
 		
+		while(true) {
+			try {
+				Thread.sleep(10);
+				caught.setText("Caught: " + score.getCaught() + "    ");
+				missed.setText("Missed:" + score.getMissed() + "    ");
+				scr.setText("Score:" + score.getScore() + "    ");
+				
+				if(score.getTotal() >= totalWords) {
+					w.setRunning(false);
+					for(WordRecord word: words) {
+						word.resetWord();
+			    	}
+			    	score.resetScore();
+			    	w.repaint();
+			    	JOptionPane.showMessageDialog(frame, "Game over!");
+				}
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 }

@@ -3,6 +3,7 @@ public class WordRecord {
 	private  int x;
 	private int y;
 	private int maxY;
+	private boolean dropped;
 	
 	private int fallingSpeed;
 	private static int maxWait=1500;
@@ -18,6 +19,7 @@ public class WordRecord {
 		y=0;
 		maxY=300;
 		fallingSpeed=(int)(Math.random() * (maxWait-minWait)+minWait);
+		dropped = false;
 	}
 	
 	WordRecord(String text) {
@@ -33,14 +35,12 @@ public class WordRecord {
 	
 // all getters and setters must be synchronized
 	//returns true if at maxY, false otherwise
-	public synchronized  boolean setY(int y) {
+	public synchronized  void setY(int y) {
 		if (y>maxY) {
 			y=maxY;
-			return true;
 		}
 		else {
 			this.y=y;
-			return false;
 		}
 	}
 	
@@ -50,6 +50,14 @@ public class WordRecord {
 	
 	public synchronized  void setWord(String text) {
 		this.text=text;
+	}
+	
+	public synchronized  void setDropped(boolean dropped) {
+		this.dropped = dropped;
+	}
+	
+	public synchronized  boolean getDropped() {
+		return dropped;
 	}
 
 	public synchronized  String getWord() {
@@ -80,6 +88,7 @@ public class WordRecord {
 		resetPos();
 		text=dict.getNewWord();
 		fallingSpeed=(int)(Math.random() * (maxWait-minWait)+minWait);
+		dropped = false;
 		//System.out.println(getWord() + " falling speed = " + getSpeed());
 	}
 	
@@ -93,8 +102,13 @@ public class WordRecord {
 			return false;
 	}
 	
-
-	public synchronized  void drop(int inc) {
+	public synchronized boolean drop(int inc) {
 		setY(y+inc);
+		if(y >= maxY) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 }
